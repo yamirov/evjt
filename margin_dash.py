@@ -67,8 +67,8 @@ margin_layout = html.Div([
             placeholder='Host name' 
         ),
         html.Button('Apply Filter', id='filter-button', n_clicks=0)
-    ]),
-    html.Div(id='scatter-plots-margin')
+    ], style={'width': '20%', 'display': 'inline-block', 'verticalAlign': 'top'}),
+    html.Div(id='scatter-plots-margin', style={'width': '75%', 'display': 'inline-block', 'paddingLeft': '5%'})
 ])
 
 def register_margin_callbacks(app):
