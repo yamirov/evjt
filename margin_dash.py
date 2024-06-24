@@ -39,6 +39,8 @@ sagv_values = df_sagv['sagv'].unique()
 # Get the unique values for the sagv filter dropdown
 host_values = df_sagv['Host Name'].unique()
 
+mrc_ver_values = sorted(df_sagv['mrc ver'].astype('str').unique()) 
+
 # Layout for SAGV page
 margin_layout = html.Div([
     html.H1("Margins"),
@@ -49,12 +51,11 @@ margin_layout = html.Div([
             value='all',
             clearable=False
         ),
-        #dcc.Dropdown(
-        #    id='x-axis-dropdown',
-        #    options=[{'label': str(col), 'value': str(col)} for col in parameter_columns],
-        #    value=parameter_columns[0],
-        #    clearable=False
-        #),
+        dcc.Dropdown(
+            id='mrc-ver-dropdown',
+            multi=True,
+            placeholder='Select MRC Ver'
+        ),
         dcc.Dropdown(
             id='sagv-filter-dropdown',
             options=[{'label': str(val), 'value': str(val)} for val in sagv_values],
@@ -72,14 +73,37 @@ margin_layout = html.Div([
 ])
 
 def register_margin_callbacks(app):
+
+    # Callback to update the mrc ver dropdown options based on the filtered data
+    @app.callback(
+        Output('mrc-ver-dropdown', 'options'),
+        [Input('filter-button', 'n_clicks')],
+        [State('csv-file-dropdown', 'value'), State('host-filter-dropdown', 'value'), State('sagv-filter-dropdown', 'value')]
+    )
+    def update_mrc_ver_options(n_clicks, csv_file, host_filter, sagv_filter):
+        if csv_file == 'all':
+            filtered_df = df_sagv
+        else:
+            filtered_df = load_csv_file(csv_file)
+
+        if sagv_filter:
+            filtered_df = filtered_df[filtered_df['sagv'].astype(str).str.contains(sagv_filter)]
+
+        if host_filter:
+            filtered_df = filtered_df[filtered_df['Host Name'].astype(str).isin(host_filter)]
+
+        mrc_ver_values = sorted(filtered_df['mrc ver'].astype('str').unique())
+        return [{'label': val, 'value': val} for val in mrc_ver_values]
+
+
     # Callback to update the scatter plots for SAGV page
     @app.callback(
         Output('scatter-plots-margin', 'children'),
         [Input('filter-button', 'n_clicks')],
-        [State('csv-file-dropdown', 'value'), State('host-filter-dropdown', 'value'), State('sagv-filter-dropdown', 'value')]
+        [State('csv-file-dropdown', 'value'), State('host-filter-dropdown', 'value'), State('sagv-filter-dropdown', 'value'),State('mrc-ver-dropdown', 'value')]
         #[State('csv-file-dropdown', 'value'), State('sagv-filter-dropdown', 'value')]
     )
-    def update_scatter_plots_margin(n_clicks, csv_file, host_filter, sagv_filter):
+    def update_scatter_plots_margin(n_clicks, csv_file, host_filter, sagv_filter,mrc_ver_filter):
         if csv_file == 'all':
             filtered_df = df_sagv
         else:
@@ -90,6 +114,9 @@ def register_margin_callbacks(app):
        
         if host_filter:
             filtered_df = filtered_df[filtered_df['Host Name'].astype(str).isin(host_filter)]
+
+        if mrc_ver_filter:
+            filtered_df = filtered_df[filtered_df['mrc ver'].astype('str').isin(mrc_ver_filter)]
 
         scatter_plots = []
         for parameter in parameter_columns:
