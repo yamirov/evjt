@@ -5,6 +5,8 @@ import pandas as pd
 import os
 import glob
 
+import system_results
+
 
 # Function to get the list of CSV files from the specified directory and its subfolders
 def get_csv_files(directory):
@@ -29,17 +31,13 @@ csv_files = get_csv_files(csv_directory)
 # Load all CSV files as the default DataFrame
 df_sagv = load_all_csv_files(csv_directory)
 
+sysResults = system_results.SystemResults(df_sagv)
+
 # Get the list of parameter columns for the x-axis options
 #parameter_columns = [col for col in df_sagv.columns if col not in ['neg_value', 'pos_value', 'sagv']]
 parameter_columns = df_sagv['parameter'].unique()
-
-# Get the unique values for the sagv filter dropdown
-sagv_values = df_sagv['sagv'].unique()
-
-# Get the unique values for the sagv filter dropdown
-host_values = df_sagv['Host Name'].unique()
-
-mrc_ver_values = sorted(df_sagv['mrc ver'].astype('str').unique()) 
+ 
+mrc_ver_values = sysResults.get_mrc_values()
 
 # Layout for SAGV page
 margin_layout = html.Div([
@@ -58,12 +56,12 @@ margin_layout = html.Div([
         ),
         dcc.Dropdown(
             id='sagv-filter-dropdown',
-            options=[{'label': str(val), 'value': str(val)} for val in sagv_values],
+            options=[{'label': str(val), 'value': str(val)} for val in sysResults.get_SAGV_values()],
             placeholder='Filter by SAGV value'
         ),
         dcc.Dropdown(
             id='host-filter-dropdown',
-            options=[{'label': str(val), 'value': str(val)} for val in host_values],
+            options=[{'label': str(val), 'value': str(val)} for val in sysResults.get_host_values()],
             multi= True,
             placeholder='Host name' 
         ),
