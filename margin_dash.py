@@ -81,17 +81,13 @@ def register_margin_callbacks(app):
     def update_mrc_ver_options(n_clicks, csv_file, host_filter, sagv_filter):
         if csv_file == 'all':
             filtered_df = df_sagv
+
         else:
             filtered_df = load_csv_file(csv_file)
 
-        if sagv_filter:
-            filtered_df = filtered_df[filtered_df['sagv'].astype(str).str.contains(sagv_filter)]
-
-        if host_filter:
-            filtered_df = filtered_df[filtered_df['Host Name'].astype(str).isin(host_filter)]
-
-        mrc_ver_values = sorted(filtered_df['mrc ver'].astype('str').unique())
-        return [{'label': val, 'value': val} for val in mrc_ver_values]
+        filtered_df = sysResults.filter_data_frame(filtered_df,sagv_filter,host_filter)
+        
+        return [{'label': val, 'value': val} for val in sysResults.get_mrc_values()]
 
 
     # Callback to update the scatter plots for SAGV page
@@ -107,14 +103,7 @@ def register_margin_callbacks(app):
         else:
             filtered_df = load_csv_file(csv_file)
         
-        if sagv_filter:
-            filtered_df = filtered_df[filtered_df['sagv'].astype(str).str.contains(sagv_filter)]
-       
-        if host_filter:
-            filtered_df = filtered_df[filtered_df['Host Name'].astype(str).isin(host_filter)]
-
-        if mrc_ver_filter:
-            filtered_df = filtered_df[filtered_df['mrc ver'].astype('str').isin(mrc_ver_filter)]
+        filtered_df = sysResults.filter_data_frame(filtered_df,sagv_filter,host_filter,mrc_ver_filter)
 
         scatter_plots = []
         for parameter in parameter_columns:
